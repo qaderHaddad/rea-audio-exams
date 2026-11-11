@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audio Exam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Rawabi English Academy: navy #1B4164 + red #E21D39 (from the logo) */
+  --navy:#1B4164; --navy-2:#2A5682; --navy-tint:#E4ECF5; --red:#E21D39; --red-dark:#B5142C; --red-tint:#FCE6E9;
+  --bg:#F4F6F9; --card:#FFFFFF; --ink:#16212E; --muted:#526274; --line:#D6DFE9;
+  --accent:var(--red); --accent-ink:#FFFFFF; --hl:#FFE680; --reading:#FFF4C2;
+  --mic:var(--red); --ok:#2E7D32; --btn:#EAEEF3; --btn-ink:var(--ink);
+  --fs:21px;
+}
+*{box-sizing:border-box}
+html{font-size:var(--fs)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Atkinson Hyperlegible","Verdana","Arial",sans-serif;line-height:1.7;letter-spacing:.02em;word-spacing:.12em}
+button,input,select,textarea{font:inherit;letter-spacing:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px 120px}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:10;background:var(--navy);color:#fff;border-bottom:4px solid var(--red)}
+.bar .btn{background:rgba(255,255,255,.14);color:#fff}
+.bar .btn:hover{border-color:#fff}
+.bar .ctl input[type=range]{accent-color:var(--red)}
+.bar .timer{background:#fff;color:var(--navy);font-weight:700}
+.bar .timer.running{background:#DFF0DF;color:#14532D}
+.bar .in{max-width:860px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bar .t{font-weight:700;flex:1 1 220px;font-size:.85rem;line-height:1.3}
+.ctl{display:flex;align-items:center;gap:6px;font-size:.75rem}
+.ctl input[type=range]{width:110px}
+.ctl select{max-width:180px;font-size:.75rem;padding:4px}
+.timer{font-variant-numeric:tabular-nums;font-size:.8rem;background:var(--btn);padding:4px 10px;border-radius:8px;min-width:84px;text-align:center}
+.timerbox{display:inline-flex;gap:6px;align-items:center}
+.sync{font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.14);color:#fff}
+.sync.ok{background:#DFF0DF;color:#14532D}
+.sync.bad{background:#FFE0B2;color:#7A3E00}
+.sendnote{border-radius:12px;padding:12px 14px;margin:12px 0;font-weight:700}
+.sendnote.ok{background:#DFF0DF;color:#14532D}
+.sendnote.bad{background:#FFE0B2;color:#7A3E00}
+.sendnote.wait{background:var(--navy-tint);color:var(--navy)}
+
+header.top{display:flex;gap:16px;align-items:center;margin:24px 0 8px}
+header.top img{width:64px;height:64px}
+header.top h1{font-size:1.25rem;line-height:1.3;margin:0;color:var(--navy)}
+header.top .dept{color:var(--red);font-weight:700;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+header.top .sub{color:var(--muted);font-size:.8rem}
+
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+.card.qcard{border-left:8px solid var(--accent)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.qhead h2{margin:0;font-size:1.1rem;color:var(--navy)}
+.part{border-top:1px dashed var(--line);margin-top:14px;padding-top:12px}
+.part:first-of-type{border-top:0}
+.plabel{font-weight:700;margin-right:.4em}
+.marks{color:var(--muted);font-size:.85rem;white-space:nowrap}
+.say{border-radius:8px;padding:2px 4px;margin:0 -4px;transition:background .15s}
+.say.reading{background:var(--reading)}
+.w.on{background:var(--hl);border-radius:4px;box-shadow:0 0 0 2px var(--hl)}
+
+.btn{display:inline-flex;align-items:center;gap:8px;border:2px solid transparent;background:var(--btn);color:var(--btn-ink);
+  border-radius:12px;padding:8px 14px;cursor:pointer;font-weight:700;font-size:.85rem;min-height:48px}
+.btn:hover{border-color:var(--ink)}
+.btn:focus-visible{outline:3px solid var(--navy-2);outline-offset:2px}
+.btn .ic{font-size:1.15rem;line-height:1}
+.btn.listen{background:var(--navy-tint);color:var(--navy)}
+.btn.mic{background:var(--red-tint);color:var(--red-dark)}
+.btn.mic.live{background:var(--mic);color:#fff;animation:pulse 1.2s infinite}
+.btn.primary{background:var(--red);color:#fff}
+.btn.primary:hover{background:var(--red-dark);border-color:transparent}
+.btn.small{min-height:40px;padding:4px 10px;font-size:.75rem}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(226,29,57,.5)}50%{box-shadow:0 0 0 8px rgba(226,29,57,0)}}
+
+.ans{margin-top:10px}
+.ans .alabel{font-weight:700;margin-bottom:4px}
+textarea{width:100%;border:2px solid #A9B8C8;border-radius:10px;padding:10px 12px;background:#FCFDFE;color:var(--ink);resize:vertical;line-height:1.6}
+textarea:focus{outline:3px solid var(--navy-2);outline-offset:1px;border-color:var(--navy)}
+textarea.reading{outline:3px solid #F2B705}
+.interim{color:var(--muted);font-style:italic;min-height:1.2em;font-size:.85rem}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:10px}
+.opt{display:flex;align-items:stretch;border:2px solid #A9B8C8;border-radius:12px;background:#FCFDFE;overflow:hidden}
+.opt button.pick{flex:1;border:0;background:transparent;color:var(--ink);text-align:left;padding:10px 12px;cursor:pointer;font-weight:700;min-height:52px}
+.opt button.hear{border:0;border-left:2px solid var(--line);background:var(--navy-tint);width:50px;cursor:pointer;font-size:1.1rem}
+.opt.sel{border-color:var(--ok);box-shadow:0 0 0 3px var(--ok)}
+.opt.sel button.pick::before{content:"✓ ";color:var(--ok)}
+.pickinfo{font-size:.8rem;color:var(--muted);margin-top:6px}
+
+.namebox{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.namebox input{flex:1 1 240px;border:2px solid #A9B8C8;border-radius:10px;padding:10px 12px;background:#FCFDFE;color:var(--ink);min-height:48px}
+.namebox input:focus{outline:3px solid var(--navy-2);outline-offset:1px;border-color:var(--navy)}
+
+.help ol{margin:6px 0 0;padding-left:1.3em}
+.warn{background:#FFF0D6;border:2px solid #F2B705;border-radius:12px;padding:12px 14px;margin:12px 0;display:none}
+.finish{display:flex;justify-content:center;margin:30px 0}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal .box{background:var(--card);border-radius:16px;padding:22px;max-width:520px;width:100%}
+.modal .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+/* review / print */
+#review{display:none}
+.rv h1{font-size:1.2rem;margin:0}
+.rv table{border-collapse:collapse;width:100%;margin:6px 0 14px;font-size:.85rem}
+.rv td{border:1px solid #999;padding:4px 8px;vertical-align:top}
+.rq{margin:14px 0;break-inside:avoid}
+.rq .qt{font-weight:700}
+.rq .a{white-space:pre-wrap;border:1px solid #999;border-radius:6px;padding:6px 10px;min-height:2em;margin:4px 0 8px;background:#fff}
+.rq .a.empty{color:#999;font-style:italic}
+.rq .mk{float:right;color:#333}
+.mbox{display:inline-block;border:1px solid #333;min-width:48px;text-align:center;margin-left:6px}
+body.reviewing #exam,body.reviewing .bar{display:none}
+body.reviewing #review{display:block}
+@media print{
+  :root{--fs:12pt}
+  body{background:#fff;letter-spacing:0;word-spacing:0;line-height:1.45}
+  .noprint{display:none!important}
+  .wrap{max-width:none;padding:0}
+}
+@media (max-width:560px){ .bar .t{flex-basis:100%} }
+</style>
+</head>
+<body>
+
+<div class="bar noprint">
+  <div class="in">
+    <div class="t" id="barTitle"></div>
+    <label class="ctl">Speed <input type="range" id="rate" min="0.6" max="1.4" step="0.1" value="0.9"></label>
+    <label class="ctl">Voice <select id="voice"></select></label>
+    <span class="ctl"><button class="btn small" id="smaller" aria-label="Smaller text">A−</button><button class="btn small" id="bigger" aria-label="Bigger text">A+</button></span>
+    <span class="timerbox"><span class="timer" id="timer" aria-live="off">⏱ 0:00</span><button class="btn small" id="timerToggle"><span class="ic">▶</span><span class="lbl">Start</span></button><button class="btn small" id="timerReset" aria-label="Reset timer"><span class="ic">↺</span>Reset</button></span>
+    <span class="sync" id="sync" hidden></span>
+    <button class="btn small" id="stopAll"><span class="ic">🔇</span>Stop sound</button>
+  </div>
+</div>
+
+<div class="wrap" id="exam">
+  <header class="top">
+    <img src="data:image/png;base64,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" alt="">
+    <div>
+      <div class="dept">Rawabi English Academy · IT Department</div>
+      <h1 id="title"></h1>
+      <div class="sub" id="sub"></div>
+    </div>
+  </header>
+
+  <div class="warn" id="noMic"></div>
+
+  <div class="card help">
+    <div class="qhead"><h2 class="say" id="howTitle">How this exam works</h2>
+      <button class="btn listen" id="howListen"><span class="ic">🔊</span>Listen</button></div>
+    <ol id="howList"></ol>
+  </div>
+
+  <div class="card">
+    <div class="ans">
+      <div class="alabel">Your name</div>
+      <div class="namebox">
+        <input id="studentName" autocomplete="off" placeholder="Name">
+        <button class="btn mic" data-mic="studentName"><span class="ic">🎤</span><span class="lbl">Say it</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="questions"></div>
+
+  <div class="finish"><button class="btn primary" id="finishBtn"><span class="ic">✅</span>I have finished</button></div>
+</div>
+
+<div class="wrap" id="review"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <p class="say" id="modalText"></p>
+    <div class="row" id="modalRow"></div>
+  </div>
+</div>
+
+<script>
+const EXAM = {"id": "y10-rev-ch3-2026-11-10", "title": "Revision Exam: Chapter 3 - Storage devices and media", "short": "Y10 Revision Exam: Chapter 3 (audio version)", "year": "10", "duration": "45 minutes", "total": 29, "date": "Tuesday, 10 November 2026", "questions": [{"n": 1, "parts": [{"text": "Choose two solid-state storage devices.", "marks": 2, "type": "choice", "pick": 2, "options": ["Actuator", "Cloud", "CD-ROM drive", "DVD drive", "HDD", "Pen drive", "Sensor", "SSD"]}]}, {"n": 2, "intro": "State the most appropriate storage medium from its description.", "parts": [{"label": "a", "text": "A storage medium that stores data on the internet.", "marks": 1, "rows": 1}, {"label": "b", "text": "Internal storage where the current instruction is stored.", "marks": 1, "rows": 1}, {"label": "c", "text": "A solid-state storage that is used in digital cameras.", "marks": 1, "rows": 1}, {"label": "d", "text": "An optical storage medium that stores high-definition (HD) movies.", "marks": 1, "rows": 1}]}, {"n": 3, "parts": [{"label": "a", "text": "For each of the following types of backing storage give one example of its associated media. Your answers must be different in each case.", "marks": 3, "type": "list", "items": ["Optical:", "Magnetic:", "Solid state:"], "rows": 1}, {"label": "b", "text": "Describe three differences between optical and magnetic backing storage.", "marks": 3, "type": "list", "items": ["Difference 1:", "Difference 2:", "Difference 3:"], "rows": 2}]}, {"n": 4, "parts": [{"text": "State three advantages of using solid state storage devices rather than magnetic storage devices.", "marks": 3, "type": "list", "items": ["Advantage 1:", "Advantage 2:", "Advantage 3:"], "rows": 2}]}, {"n": 5, "intro": "Many people use portable solid-state drives (SSD) rather than portable hard disk drives (HDD).", "parts": [{"text": "Compare SSDs and HDDs. Your answer should include both similarities and differences.", "marks": 6, "rows": 9}]}, {"n": 6, "intro": "Movies can be stored on Blu-ray discs or an internal hard disk.", "parts": [{"label": "a", "text": "Describe why Blu-ray discs are preferred to an internal hard disk for storing movies.", "marks": 4, "rows": 6}, {"label": "bi", "disp": "(b)(i)", "subintro": "Hard disks and Blu-ray discs are examples of backing storage.", "text": "State two characteristics of backing storage.", "marks": 2, "type": "list", "items": ["Characteristic 1:", "Characteristic 2:"], "rows": 2}, {"label": "bii", "disp": "(b)(ii)", "text": "Identify two other types of backing storage.", "marks": 2, "type": "list", "items": ["Type 1:", "Type 2:"], "rows": 1}]}], "submitUrl": "https://script.google.com/macros/s/AKfycbyMJ_2gKQmIDvy9KWrKNDUWUa12XDZdYI444jdX6IUylLcMSrNU7L4e2BEjZ5cKdIP6/exec"};
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+const KEY = 'audio-exam:' + EXAM.id;
+const newSid = () => Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+let state = store.get(KEY) || { answers:{}, picks:{}, name:'', elapsed:0, runStart:null, finished:null };
+if (!state.sid){ state.sid = newSid(); store.set(KEY, state); }
+if (state.started !== undefined){ delete state.started; }
+const save = () => { store.set(KEY, state); queueSync(); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const marksWord = m => m === 1 ? '1 mark' : m + ' marks';
+
+/* readable text: wraps each word in a span so we can highlight while reading */
+function readable(tag, text, cls){
+  const el = document.createElement(tag);
+  el.className = 'say' + (cls ? ' ' + cls : '');
+  const words = [];
+  let pos = 0;
+  text.split(/(\s+)/).forEach(tok => {
+    if (!tok) return;
+    if (/^\s+$/.test(tok)) { el.appendChild(document.createTextNode(tok)); pos += tok.length; return; }
+    const sp = document.createElement('span'); sp.className = 'w'; sp.textContent = tok;
+    el.appendChild(sp); words.push({ s:pos, e:pos+tok.length, el:sp }); pos += tok.length;
+  });
+  el._seg = { el, text, words };
+  return el;
+}
+const segOf = el => el._seg || { el, text: el.textContent, words: [] };
+const plainSeg = (text) => ({ el:null, text, words:[] });
+
+/* ---------- text to speech ---------- */
+const synth = window.speechSynthesis;
+let voices = [], speakToken = 0;
+function loadVoices(){
+  if (!synth) return;
+  voices = synth.getVoices().filter(v => /^en/i.test(v.lang));
+  const sel = $('#voice'); const keep = store.get(KEY+':voice');
+  sel.innerHTML = '';
+  // prefer natural-sounding local voices
+  const rank = v => (/(UK|GB)/i.test(v.name+v.lang)?0:1) + (v.localService?0:2) + (/Google|Natural|Premium|Enhanced|Daniel|Serena|Samantha|Karen|Moira/i.test(v.name)?0:1);
+  voices.sort((a,b)=>rank(a)-rank(b));
+  voices.forEach((v,i) => { const o=document.createElement('option'); o.value=v.name; o.textContent=v.name.replace(/Microsoft |Google /,''); sel.appendChild(o); });
+  if (keep && voices.some(v=>v.name===keep)) sel.value = keep;
+}
+if (synth){ loadVoices(); synth.onvoiceschanged = loadVoices; }
+$('#voice').onchange = e => store.set(KEY+':voice', e.target.value);
+
+function clearHL(){
+  document.querySelectorAll('.reading').forEach(e=>e.classList.remove('reading'));
+  document.querySelectorAll('.w.on').forEach(e=>e.classList.remove('on'));
+}
+function stopSpeaking(){ speakToken++; if (synth) synth.cancel(); clearHL(); }
+
+/* speak a list of segments one after another */
+function speak(segs, onDone){
+  if (!synth){ return; }
+  stopListening();
+  stopSpeaking();
+  const token = speakToken;
+  const rate = parseFloat($('#rate').value);
+  const voice = voices.find(v => v.name === $('#voice').value);
+  let i = 0;
+  const next = () => {
+    if (token !== speakToken) return;
+    clearHL();
+    if (i >= segs.length){ onDone && onDone(); return; }
+    const seg = segs[i++];
+    if (!seg.text.trim()){ next(); return; }
+    const u = new SpeechSynthesisUtterance(seg.text);
+    u.rate = rate; if (voice){ u.voice = voice; u.lang = voice.lang; } else u.lang = 'en-GB';
+    u.onstart = () => { if (seg.el){ seg.el.classList.add('reading'); seg.el.scrollIntoView({block:'nearest',behavior:'smooth'}); } };
+    u.onboundary = e => {
+      if (e.name && e.name !== 'word') return;
+      seg.words.forEach(w => w.el.classList.toggle('on', e.charIndex >= w.s && e.charIndex < w.e));
+    };
+    u.onend = () => setTimeout(next, 250);
+    u.onerror = () => setTimeout(next, 50);
+    synth.speak(u);
+  };
+  next();
+}
+$('#stopAll').onclick = () => { stopSpeaking(); stopListening(); };
+
+/* ---------- speech to text ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recField = null, recBtn = null, recWanted = false;
+const undoStack = {};   // undo stack per field
+
+if (!SR){
+  const w = $('#noMic'); w.style.display='block';
+  w.innerHTML = '<b>Talking to type is not built into this browser.</b> Please open this file in <b>Google Chrome</b> or <b>Microsoft Edge</b>. On a Mac you can also click in an answer box and press the <b>🌐 / Fn key twice</b> to use Mac dictation.';
+}
+
+function getField(id){ return document.getElementById(id); }
+function setValue(id, val){
+  const f = getField(id); f.value = val;
+  if (id === 'studentName') state.name = val; else state.answers[id] = val;
+  save();
+}
+
+function startListening(id, btn){
+  if (!SR) return;
+  stopSpeaking();
+  if (rec) stopListening();
+  recField = id; recBtn = btn; recWanted = true;
+  undoStack[id] = undoStack[id] || [];
+  undoStack[id].push(getField(id).value);
+  rec = new SR();
+  rec.lang = 'en-GB'; rec.continuous = true; rec.interimResults = true;
+  const interimEl = document.getElementById('int-' + id);
+  rec.onresult = e => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++){
+      const r = e.results[i];
+      if (r.isFinal){
+        let t = r[0].transcript.trim();
+        if (!t) continue;
+        t = spokenPunctuation(t);
+        const cur = getField(id).value;
+        const needCap = !cur.trim() || /[.!?]\s*$/.test(cur);
+        if (needCap) t = t.charAt(0).toUpperCase() + t.slice(1);
+        const sep = cur && !/\s$/.test(cur) && !/^[.,!?]/.test(t) ? ' ' : '';
+        setValue(id, cur + sep + t);
+      } else interim += r[0].transcript;
+    }
+    if (interimEl) interimEl.textContent = interim ? '… ' + interim : '';
+  };
+  rec.onerror = e => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      recWanted = false;
+      showModal('The microphone is blocked. Ask your teacher to allow the microphone for this page, then try again.', [['OK', hideModal]]);
+    } else if (e.error === 'network'){
+      recWanted = false;
+      showModal('Talking to type needs the internet in this browser. Ask your teacher to check the Wi-Fi.', [['OK', hideModal]]);
+    }
+  };
+  rec.onend = () => {
+    if (interimEl) interimEl.textContent = '';
+    if (recWanted && recField === id){ try{ rec.start(); }catch(e){} return; }   // keep listening through pauses
+    btnIdle(btn);
+  };
+  try{ rec.start(); btnLive(btn); }catch(e){}
+}
+function stopListening(){
+  recWanted = false;
+  if (rec){ try{ rec.stop(); }catch(e){} }
+  if (recBtn) btnIdle(recBtn);
+  rec = null; recField = null; recBtn = null;
+}
+function btnLive(b){ b.classList.add('live'); b.querySelector('.lbl').textContent = 'Stop talking'; b.querySelector('.ic').textContent='⏺'; }
+function btnIdle(b){ b.classList.remove('live'); b.querySelector('.lbl').textContent = b.dataset.idle || 'Say it'; b.querySelector('.ic').textContent='🎤'; }
+
+/* simple spoken punctuation */
+function spokenPunctuation(t){
+  return t.replace(/\s*\b(full stop|period)\b/gi, '.')
+          .replace(/\s*\bcomma\b/gi, ',')
+          .replace(/\s*\bquestion mark\b/gi, '?')
+          .replace(/\s*\bnew line\b\s*/gi, '\n');
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-mic]');
+  if (!b) return;
+  const id = b.dataset.mic;
+  if (recField === id) stopListening(); else startListening(id, b);
+});
+
+/* ---------- build the exam ---------- */
+$('#barTitle').textContent = EXAM.short;
+$('#title').textContent = EXAM.title;
+$('#sub').textContent = `Year ${EXAM.year} · ${EXAM.duration} · ${EXAM.total} marks · ${EXAM.date}`;
+document.title = EXAM.short;
+
+const howSteps = [
+  'Press a blue Listen button to hear a question. You can listen as many times as you want.',
+  'Press a red Say it button, then say your answer. Your words will appear in the box.',
+  'Press Stop talking when you have finished. Then press Play my answer to check it.',
+  'If a word is wrong, press Undo, then say it again. You can also say comma or full stop.',
+  'When you have answered every question, press I have finished at the bottom.'
+];
+const howSegs = [segOf($('#howTitle'))];
+howSteps.forEach(s => { const li = readable('li', s); $('#howList').appendChild(li); howSegs.push(segOf(li)); });
+$('#howListen').onclick = () => speak(howSegs);
+
+function answerBlock(id, label, rows, sayLabel){
+  const wrap = document.createElement('div'); wrap.className = 'ans';
+  let labelEl = null;
+  if (label){ labelEl = readable('div', label, 'alabel'); wrap.appendChild(labelEl); }
+  const ta = document.createElement('textarea'); ta.id = id; ta.rows = rows;
+  ta.setAttribute('aria-label', sayLabel || label || 'Answer');
+  ta.value = state.answers[id] || '';
+  ta.oninput = () => { state.answers[id] = ta.value; save(); };
+  wrap.appendChild(ta);
+  const int = document.createElement('div'); int.className='interim'; int.id='int-'+id; wrap.appendChild(int);
+  const tools = document.createElement('div'); tools.className = 'tools';
+  tools.innerHTML = `<button class="btn mic" data-mic="${id}" data-idle="Say it"><span class="ic">🎤</span><span class="lbl">Say it</span></button>
+    <button class="btn listen" data-play="${id}"><span class="ic">▶️</span>Play my answer</button>
+    <button class="btn" data-undo="${id}"><span class="ic">↩️</span>Undo</button>`;
+  wrap.appendChild(tools);
+  return { wrap, labelEl };
+}
+
+document.addEventListener('click', e => {
+  const p = e.target.closest('[data-play]');
+  if (p){
+    const ta = getField(p.dataset.play);
+    const v = ta.value.trim();
+    speak([{ el:ta, text: v || 'This answer is empty.', words:[] }]);
+  }
+  const u = e.target.closest('[data-undo]');
+  if (u){
+    const id = u.dataset.undo; const h = undoStack[id];
+    if (recField === id) stopListening();
+    if (h && h.length){ setValue(id, h.pop()); speak([plainSeg('Undone.')]); }
+    else { setValue(id, ''); speak([plainSeg('The box is now empty.')]); }
+  }
+});
+
+const Q = $('#questions');
+const ALL_SEGS = [];
+EXAM.questions.forEach((q, qi) => {
+  const card = document.createElement('section'); card.className = 'card qcard';
+  const head = document.createElement('div'); head.className = 'qhead';
+  const h2 = readable('h2', `Question ${q.n}`);
+  const qTotal = q.parts.reduce((a,p)=>a+p.marks,0);
+  const lb = document.createElement('button'); lb.className = 'btn listen'; lb.innerHTML = '<span class="ic">🔊</span>Listen to the whole question';
+  head.append(h2, lb);
+  card.appendChild(head);
+  const qSegs = [segOf(h2)];
+  let introEl = null;
+  if (q.intro){ introEl = readable('p', q.intro); card.appendChild(introEl); qSegs.push(segOf(introEl)); }
+
+  q.parts.forEach((p, pi) => {
+    const part = document.createElement('div'); part.className = 'part';
+    const pSegs = [];
+    if (introEl && q.parts.length > 1) pSegs.push(segOf(introEl));
+    if (p.subintro){ const si = readable('p', p.subintro); part.appendChild(si); pSegs.push(segOf(si)); qSegs.push(segOf(si)); }
+    const line = document.createElement('div'); line.className = 'qhead';
+    const txt = readable('div', (p.label ? (p.disp || `(${p.label})`) + ' ' : '') + p.text);
+    const mk = document.createElement('span'); mk.className='marks'; mk.textContent = `[${p.marks}]`;
+    const pl = document.createElement('button'); pl.className='btn listen small'; pl.innerHTML='<span class="ic">🔊</span>Listen';
+    const left = document.createElement('div'); left.style.flex='1 1 300px'; left.appendChild(txt);
+    line.append(left, mk, pl);
+    part.appendChild(line);
+    const txtSeg = segOf(txt);
+    const markSeg = plainSeg(`This part is worth ${marksWord(p.marks)}.`);
+    pSegs.push(txtSeg, markSeg); qSegs.push(txtSeg, markSeg);
+
+    if (p.type === 'choice'){
+      const id = `q${q.n}${p.label||''}`;
+      const picks = new Set(state.picks[id] || []);
+      const grid = document.createElement('div'); grid.className = 'opts';
+      const info = readable('div', `Choose ${p.pick}. Press an answer to choose it. Press it again to un-choose it.`, 'pickinfo');
+      const optSegs = [];
+      p.options.forEach((o, oi) => {
+        const box = document.createElement('div'); box.className = 'opt' + (picks.has(o) ? ' sel':'');
+        const pick = document.createElement('button'); pick.className='pick'; pick.textContent = o;
+        const hear = document.createElement('button'); hear.className='hear'; hear.textContent='🔊'; hear.setAttribute('aria-label','Listen to '+o);
+        box._seg = { el:box, text:o, words:[] };
+        optSegs.push(box._seg);
+        hear.onclick = () => speak([box._seg]);
+        pick.onclick = () => {
+          if (picks.has(o)){ picks.delete(o); box.classList.remove('sel'); speak([plainSeg(`${o}. Not chosen.`)]); }
+          else {
+            if (picks.size >= p.pick){ speak([plainSeg(`You have already chosen ${p.pick}. Press one of them again to un-choose it first.`)]); return; }
+            picks.add(o); box.classList.add('sel'); speak([plainSeg(`${o}. Chosen. You have chosen ${picks.size} of ${p.pick}.`)]);
+          }
+          state.picks[id] = [...picks]; save();
+        };
+        box.append(pick, hear); grid.appendChild(box);
+      });
+      part.append(info, grid);
+      const choicesSeg = plainSeg('The choices are: ' + p.options.join('. ') + '.');
+      pSegs.push(segOf(info), choicesSeg);
+      qSegs.push(segOf(info), choicesSeg);
+    } else if (p.type === 'list'){
+      p.items.forEach((it, ii) => {
+        const id = `q${q.n}${p.label||''}-${ii+1}`;
+        const { wrap } = answerBlock(id, it, p.rows || 2, `${p.text} answer ${it}`);
+        part.appendChild(wrap);
+      });
+    } else {
+      const id = `q${q.n}${p.label||''}`;
+      const { wrap } = answerBlock(id, 'Your answer', p.rows || 2);
+      part.appendChild(wrap);
+    }
+    pl.onclick = () => speak(pSegs);
+    card.appendChild(part);
+  });
+  lb.onclick = () => speak(qSegs);
+  Q.appendChild(card);
+});
+
+/* ---------- name ---------- */
+const nameEl = $('#studentName');
+nameEl.value = state.name || '';
+nameEl.oninput = () => { state.name = nameEl.value; save(); };
+
+/* ---------- controls ---------- */
+let fs = store.get(KEY+':fs') || 21;
+const applyFs = () => { document.documentElement.style.setProperty('--fs', fs+'px'); store.set(KEY+':fs', fs); };
+applyFs();
+$('#bigger').onclick = () => { fs = Math.min(30, fs+2); applyFs(); };
+$('#smaller').onclick = () => { fs = Math.max(15, fs-2); applyFs(); };
+const rateKeep = store.get(KEY+':rate'); if (rateKeep) $('#rate').value = rateKeep;
+$('#rate').onchange = e => store.set(KEY+':rate', e.target.value);
+
+const fmt = ms => { const s = Math.floor(ms/1000); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0'); };
+const elapsedNow = () => state.elapsed + (state.runStart ? Date.now() - state.runStart : 0);
+function drawTimer(){
+  $('#timer').textContent = '⏱ ' + fmt(elapsedNow());
+  $('#timer').classList.toggle('running', !!state.runStart);
+  const b = $('#timerToggle');
+  b.querySelector('.ic').textContent = state.runStart ? '⏸' : '▶';
+  b.querySelector('.lbl').textContent = state.runStart ? 'Pause' : (state.elapsed ? 'Resume' : 'Start');
+}
+function startTimer(){ if (!state.runStart){ state.runStart = Date.now(); save(); } drawTimer(); }
+function pauseTimer(){ if (state.runStart){ state.elapsed = elapsedNow(); state.runStart = null; save(); } drawTimer(); }
+$('#timerToggle').onclick = () => state.runStart ? pauseTimer() : startTimer();
+$('#timerReset').onclick = () => showModal('Reset the timer to zero?', [
+  ['Cancel', hideModal],
+  ['Reset', () => { state.elapsed = 0; state.runStart = null; save(); drawTimer(); hideModal(); }, 'primary']]);
+setInterval(drawTimer, 1000); drawTimer();
+
+/* ---------- modal ---------- */
+function showModal(text, buttons){
+  $('#modalText').textContent = text;
+  const row = $('#modalRow'); row.innerHTML = '';
+  buttons.forEach(([lbl, fn, cls]) => { const b = document.createElement('button'); b.className='btn '+(cls||''); b.textContent=lbl; b.onclick=fn; row.appendChild(b); });
+  $('#modal').style.display = 'flex';
+  speak([plainSeg(text)]);
+}
+function hideModal(){ $('#modal').style.display = 'none'; stopSpeaking(); }
+
+
+/* ---------- online saving (Google Sheet) ---------- */
+let syncTimer = null, syncBusy = false, syncAgain = false, lastSent = '';
+function queueSync(delay){
+  if (!EXAM.submitUrl) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncNow(), delay ?? 4000);
+}
+function syncChip(cls, text){
+  const s = document.getElementById('sync'); if (!s) return;
+  s.hidden = false; s.className = 'sync ' + cls; s.textContent = text;
+}
+function answerRows(){
+  const rows = [];
+  EXAM.questions.forEach(q => q.parts.forEach(p => {
+    const base = `q${q.n}${p.label||''}`;
+    const ref = `${q.n}${p.label ? (p.disp || '('+p.label+')') : ''}`;
+    if (p.type === 'choice') rows.push({ ref, marks:p.marks, answer:(state.picks[base]||[]).join(', ') });
+    else if (p.type === 'list') p.items.forEach((it,ii) => rows.push({ ref: ref + ' ' + it.replace(/:$/,''), marks: ii===0 ? p.marks : '', answer:(state.answers[`${base}-${ii+1}`]||'').trim() }));
+    else rows.push({ ref, marks:p.marks, answer:(state.answers[base]||'').trim() });
+  }));
+  return rows;
+}
+async function syncNow(){
+  if (!EXAM.submitUrl) return false;
+  if (syncBusy){ syncAgain = true; return false; }
+  const payload = {
+    exam: EXAM.id, title: EXAM.title, year: EXAM.year, sid: state.sid,
+    name: state.name || '', status: state.finished ? 'Finished' : 'In progress',
+    timeUsed: fmt(elapsedNow()), answers: answerRows()
+  };
+  const body = JSON.stringify(payload);
+  if (body === lastSent){ syncChip('ok', '✓ Saved'); return true; }
+  syncBusy = true; syncChip('', 'Saving…');
+  let ok = false;
+  try{
+    const r = await fetch(EXAM.submitUrl, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body });
+    const j = await r.json().catch(() => ({}));
+    ok = r.ok && j.ok !== false;
+  }catch(e){ ok = false; }
+  syncBusy = false;
+  if (ok){ lastSent = body; syncChip('ok', '✓ Saved'); }
+  else { syncChip('bad', '⚠ Not saved — retrying'); queueSync(15000); }
+  if (syncAgain){ syncAgain = false; queueSync(500); }
+  return ok;
+}
+window.addEventListener('online', () => queueSync(500));
+if (EXAM.submitUrl) queueSync(1000);
+
+/* ---------- finish + review ---------- */
+function allFields(){
+  const out = [];
+  EXAM.questions.forEach(q => q.parts.forEach(p => {
+    if (p.type === 'choice') out.push({ id:`q${q.n}${p.label||''}`, choice:true });
+    else if (p.type === 'list') p.items.forEach((_,ii)=>out.push({ id:`q${q.n}${p.label||''}-${ii+1}` }));
+    else out.push({ id:`q${q.n}${p.label||''}` });
+  }));
+  return out;
+}
+$('#finishBtn').onclick = () => {
+  stopListening();
+  const empty = allFields().filter(f => f.choice ? !(state.picks[f.id]||[]).length : !(state.answers[f.id]||'').trim()).length;
+  const msg = empty ? `You have ${empty} empty answer box${empty>1?'es':''}. Do you want to go back and check, or finish now?` : 'Are you sure you have finished?';
+  showModal(msg, [['Go back', hideModal], ['Yes, I have finished', () => { hideModal(); finish(); }, 'primary']]);
+};
+
+function finish(){
+  pauseTimer();
+  if (!state.finished){ state.finished = Date.now(); save(); }
+  const r = $('#review');
+  const used = fmt(elapsedNow());
+  let h = `<header class="top rv"><img src="${document.querySelector('header.top img').src}" alt="" style="width:54px;height:54px">
+    <div><h1>${esc(EXAM.title)}</h1><div class="sub">Rawabi English Academy · IT Department · Year ${EXAM.year}</div></div></header>
+    <div class="rv"><table>
+      <tr><td><b>Student</b></td><td>${esc(state.name||'')}</td><td><b>Date</b></td><td>${esc(EXAM.date)}</td></tr>
+      <tr><td><b>Time used</b></td><td>${used}</td><td><b>Total</b></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / ${EXAM.total}</td></tr>
+      <tr><td colspan="4">Taken with a computer reader (text-to-speech) and voice recognition. Answers below were dictated by the student; spelling is the software's.</td></tr>
+    </table>
+    ${EXAM.submitUrl ? '<div class="sendnote wait noprint" id="sendNote">Sending your answers to your teacher…</div>' : ''}`;
+  EXAM.questions.forEach(q => {
+    h += `<div class="rq"><div class="qt">Question ${q.n}</div>`;
+    if (q.intro) h += `<div>${esc(q.intro)}</div>`;
+    q.parts.forEach(p => {
+      h += `<div style="margin-top:6px">`;
+      if (p.subintro) h += `<div>${esc(p.subintro)}</div>`;
+      h += `<span class="mk">[${p.marks}] <span class="mbox">&nbsp;</span></span>${p.label?'<b>'+esc(p.disp||'('+p.label+')')+'</b> ':''}${esc(p.text)}`;
+      const id = `q${q.n}${p.label||''}`;
+      if (p.type === 'choice'){
+        const v = (state.picks[id]||[]);
+        h += `<div class="a ${v.length?'':'empty'}">${v.length ? 'Chose: ' + v.map(esc).join(', ') : 'No answer'}</div>`;
+      } else if (p.type === 'list'){
+        p.items.forEach((it,ii) => { const v=(state.answers[`${id}-${ii+1}`]||'').trim(); h += `<div class="a ${v?'':'empty'}"><b>${esc(it)}</b> ${v?esc(v):'No answer'}</div>`; });
+      } else {
+        const v=(state.answers[id]||'').trim(); h += `<div class="a ${v?'':'empty'}">${v?esc(v):'No answer'}</div>`;
+      }
+      h += `</div>`;
+    });
+    h += `</div>`;
+  });
+  h += `</div><div class="finish noprint" style="gap:10px;flex-wrap:wrap">
+    <button class="btn primary" onclick="window.print()"><span class="ic">🖨️</span>Print / Save as PDF</button>
+    <button class="btn" onclick="document.body.classList.remove('reviewing');window.scrollTo(0,0)"><span class="ic">↩️</span>Back to the exam</button>
+    <button class="btn" id="resetBtn"><span class="ic">🗑️</span>Clear all answers (teacher)</button></div>`;
+  r.innerHTML = h;
+  document.body.classList.add('reviewing'); window.scrollTo(0,0);
+  speak([plainSeg('Well done. You have finished. Please tell your teacher.')]);
+  if (EXAM.submitUrl) (async () => {
+    clearTimeout(syncTimer); lastSent = '';
+    let ok = await syncNow();
+    for (let i = 0; !ok && i < 2; i++){ await new Promise(r => setTimeout(r, 3000)); ok = await syncNow(); }
+    const n = document.getElementById('sendNote'); if (!n) return;
+    n.className = 'sendnote noprint ' + (ok ? 'ok' : 'bad');
+    n.innerHTML = ok ? '✓ Your answers have been sent to your teacher.'
+      : '⚠ Your answers were not sent. Tell your teacher. <button class="btn small" id="retrySend">Try again</button>';
+    const rb = document.getElementById('retrySend');
+    if (rb) rb.onclick = () => { lastSent=''; syncNow().then(ok2 => { if (ok2){ n.className='sendnote noprint ok'; n.textContent='✓ Your answers have been sent to your teacher.'; } }); };
+  })();
+  $('#resetBtn').onclick = () => showModal('Teacher: this clears every answer on this device so a new student can start.' + (EXAM.submitUrl ? ' Answers already sent to your Google Sheet are kept.' : ' Make sure you have saved the PDF first.'), [
+    ['Cancel', hideModal], ['Delete answers', () => { clearTimeout(syncTimer); try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); }, 'primary']]);
+}
+if (state.finished) { /* reopened after finishing: stay on the exam so the teacher can review */ }
+</script>
+</body>
+</html>
