@@ -585,8 +585,13 @@ function answerRows(){
   }));
   return rows;
 }
+// nothing worth saving yet: no name, no answers, not finished (so just opening the page adds no row)
+const hasContent = () => !!(state.finished || (state.name || '').trim()
+  || Object.values(state.answers || {}).some(v => (v || '').trim())
+  || Object.values(state.picks || {}).some(v => v && v.length));
 async function syncNow(){
   if (!EXAM.submitUrl) return false;
+  if (!hasContent()) return true;
   if (syncBusy){ syncAgain = true; return false; }
   const payload = {
     exam: EXAM.id, title: EXAM.title, year: EXAM.year, subject: EXAM.subject || '', sid: state.sid,
