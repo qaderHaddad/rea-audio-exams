@@ -35,13 +35,14 @@ main{max-width:760px;margin:0 auto;padding:8px 16px 80px}
 .btn.go{background:var(--red);color:#fff}
 .btn.go:hover{background:var(--red-dark)}
 .btn.listen:hover{border-color:var(--navy)}
+.subject{margin:26px 0 0;padding:6px 14px;background:var(--navy);color:#fff;border-radius:10px;font-size:1rem;display:inline-block}
 .empty{background:var(--card);border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted);margin-top:18px}
 </style>
 </head>
 <body>
 <div class="bar"><div class="in">
   <img src="logo.png" alt="" onerror="this.style.display='none'">
-  <div><div class="school">Rawabi English Academy · IT Department</div><h1>My Exams</h1></div>
+  <div><div class="school">Rawabi English Academy</div><h1>My Exams</h1></div>
 </div></div>
 <main>
   <div class="intro">
@@ -52,9 +53,11 @@ main{max-width:760px;margin:0 auto;padding:8px 16px 80px}
 </main>
 <script>
 /* The teacher's list of exams. Only exams with open: true are shown to students. */
+/* Exams are grouped under their subject. */
 const EXAMS = [
-  { year: "10", title: "Revision Exam: Chapter 4 - Networks", marks: 30, time: "45 minutes", path: "y10-ch4/", open: false },
-  { year: "10", title: "Revision Exam: Chapter 3 - Storage devices and media", marks: 29, time: "45 minutes", path: "y10-ch3/", open: false }
+  { subject: "Chemistry", year: "10", title: "Unit 11 Exam (11.1, 11.2 and 11.4)", marks: 27, time: "", teacher: "Christine Massad", path: "chemistry/y10-unit11/", open: true },
+  { subject: "ICT", year: "10", title: "Revision Exam: Chapter 4 - Networks", marks: 30, time: "45 minutes", path: "y10-ch4/", open: false },
+  { subject: "ICT", year: "10", title: "Revision Exam: Chapter 3 - Storage devices and media", marks: 29, time: "45 minutes", path: "y10-ch3/", open: false }
 ];
 
 const synth = window.speechSynthesis;
@@ -77,18 +80,26 @@ if (!open.length){
   list.innerHTML = '<div class="empty">No exam is open right now. Ask your teacher.</div>';
   document.getElementById('introText').textContent = 'No exam is open right now. Ask your teacher.';
 }
-open.forEach(e => {
-  const c = document.createElement('section'); c.className = 'card';
-  c.innerHTML = `<div class="yr">Year ${e.year}</div><h2></h2><div class="meta">${e.time} · ${e.marks} marks</div>
-    <div class="row"><button class="btn listen">🔊 Listen</button><a class="btn go">▶ Start</a></div>`;
-  c.querySelector('h2').textContent = e.title;
-  c.querySelector('a.go').href = e.path;
-  c.querySelector('button.listen').onclick = () => say(`Year ${e.year}. ${spoken(e.title)}. ${e.time}. ${e.marks} marks. Press Start to begin.`, c);
-  list.appendChild(c);
+const subjects = [...new Set(open.map(e => e.subject))];
+subjects.forEach(s => {
+  const h = document.createElement('h2'); h.className = 'subject'; h.textContent = s; list.appendChild(h);
+  h.onclick = () => say(s);
+  open.filter(e => e.subject === s).forEach(e => {
+    const c = document.createElement('section'); c.className = 'card';
+    const meta = [e.time, `${e.marks} marks`, e.teacher ? 'Teacher: ' + e.teacher : ''].filter(Boolean).join(' · ');
+    c.innerHTML = `<div class="yr"></div><h2></h2><div class="meta"></div>
+      <div class="row"><button class="btn listen">🔊 Listen</button><a class="btn go">▶ Start</a></div>`;
+    c.querySelector('.yr').textContent = `${e.subject} · Year ${e.year}`;
+    c.querySelector('h2').textContent = e.title;
+    c.querySelector('.meta').textContent = meta;
+    c.querySelector('a.go').href = e.path;
+    c.querySelector('button.listen').onclick = () => say(`${e.subject}. Year ${e.year}. ${spoken(e.title)}. ${e.time ? e.time + '. ' : ''}${e.marks} marks. Press Start to begin.`, c);
+    list.appendChild(c);
+  });
 });
 document.getElementById('introListen').onclick = () => {
   const n = open.length;
-  say(n ? `There ${n === 1 ? 'is 1 exam' : 'are ' + n + ' exams'} open. ` + open.map(e => spoken(e.title)).join('. ') + '. Press Start to begin.'
+  say(n ? `There ${n === 1 ? 'is 1 exam' : 'are ' + n + ' exams'} open. ` + open.map(e => e.subject + ', ' + spoken(e.title)).join('. ') + '. Press Start to begin.'
         : 'No exam is open right now. Ask your teacher.');
 };
 if (synth) synth.onvoiceschanged = () => {};
